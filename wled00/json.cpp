@@ -216,7 +216,21 @@ bool deserializeSegment(JsonObject elem, byte it, byte presetId)
 
   uint8_t pal = seg.palette;
   if (seg.getLightCapabilities() & 1) {  // ignore palette for White and On/Off segments
-    if (getVal(elem["pal"], &pal)) seg.setPalette(pal);
+    if (elem["pal"].is<const char*>()) {
+      const char* palStr = elem["pal"];
+      if (presetPalCyc[0] != 0 && palStr[0] == 'm') {
+        parseNumber(presetPalCyc, &pal);
+        seg.setPalette(pal);
+      } else if (getVal(elem["pal"], &pal)) {
+        if (strpbrk(palStr, ",~")) {
+          // if pal contains '~' or ',' it is a cycle, so memorize it
+          strlcpy(presetPalCyc, palStr, 255);
+        }
+        seg.setPalette(pal);
+      }
+    } else if (getVal(elem["pal"], &pal)) {
+      seg.setPalette(pal);
+    }
   }
 
   getVal(elem["c1"], &seg.custom1);

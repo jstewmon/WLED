@@ -37,10 +37,24 @@ void parseNumber(const char* str, byte* val, byte minv, byte maxv)
       *val = out;
     }
     return;
+  } else if (const char* str2 = strchr(str, ',')) { // csv (for preset cycle, e.g. "1,3,5")
+    // Search str for *val. If found, return the next value, else return first value.
+    // a and b hold adjacent values in str, so when a == *val, return b.
+    byte head = atoi(str);
+    byte a = head;
+    do {
+      byte b = atoi(++str2);
+      if (a == *val) {
+        *val = b;
+        return;
+      }
+      a = b;
+    } while ((str2 = strchr(str2, ',')));
+    *val = head; // not found, use first value
+    return;
   } else if (minv == maxv && minv == 0) { // limits "unset" i.e. both 0
     byte p1 = atoi(str);
-    const char* str2 = strchr(str,'~'); // min/max range (for preset cycle, e.g. "1~5~")
-    if (str2) {
+    if (const char* str2 = strchr(str,'~')) { // min/max range (for preset cycle, e.g. "1~5~")
       byte p2 = atoi(++str2);           // skip ~
       if (p2 > 0) {
         while (isdigit(*(++str2)));     // skip digits
@@ -60,8 +74,9 @@ bool getVal(JsonVariant elem, byte* val, byte vmin, byte vmax) {
     return true;
   } else if (elem.is<const char*>()) {
     const char* str = elem;
-    size_t len = strnlen(str, 12);
-    if (len == 0 || len > 10) return false;
+    // jstewmon: why was this length check here?
+    // size_t len = strnlen(str, 12);
+    // if (len == 0 || len > 10) return false;
     parseNumber(str, val, vmin, vmax);
     return true;
   }

@@ -176,8 +176,18 @@ void handlePresets()
     changePreset = true;
   } else {
     if (!fdo["seg"].isNull() || !fdo["on"].isNull() || !fdo["bri"].isNull() || !fdo["nl"].isNull() || !fdo["ps"].isNull() || !fdo[F("playlist")].isNull()) changePreset = true;
-    if (!(tmpMode == CALL_MODE_BUTTON_PRESET && fdo["ps"].is<const char *>() && strchr(fdo["ps"].as<const char *>(),'~') != strrchr(fdo["ps"].as<const char *>(),'~')))
-      fdo.remove("ps"); // remove load request for presets to prevent recursive crash (if not called by button and contains preset cycling string "1~5~")
+    // jstewmon:
+    // Unclear if it worked as intended - it suppressed "ps" when any of the expressed conditions was false.
+    // tmpMode == CALL_MODE_BUTTON_PRESET; false when:
+    // - called from the web UI
+    // - called from the API (e.g. chained presets)
+    // fdo["ps"].is<const char *>() is false when a number is given
+    // strchr(fdo["ps"].as<const char *>(),'~') != strrchr(fdo["ps"].as<const char *>(),'~')) is false when:
+    // - there is only 1 tilde
+    // - there are no tildes
+    // This didn't really prevent cycles.
+    // if (!(tmpMode == CALL_MODE_BUTTON_PRESET && fdo["ps"].is<const char *>() && strchr(fdo["ps"].as<const char *>(),'~') != strrchr(fdo["ps"].as<const char *>(),'~')))
+    //   fdo.remove("ps"); // remove load request for presets to prevent recursive crash (if not called by button and contains preset cycling string "1~5~")
     deserializeState(fdo, CALL_MODE_NO_NOTIFY, tmpPreset); // may change presetToApply by calling applyPreset()
   }
   if (!errorFlag && tmpPreset < 255 && changePreset) currentPreset = tmpPreset;

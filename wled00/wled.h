@@ -613,6 +613,7 @@ WLED_GLOBAL int16_t currentPlaylist _INIT(-1);
 WLED_GLOBAL byte presetCycCurr _INIT(0);
 WLED_GLOBAL byte presetCycMin _INIT(1);
 WLED_GLOBAL byte presetCycMax _INIT(5);
+WLED_GLOBAL char presetPalCyc[255] _INIT("");
 
 // realtime
 WLED_GLOBAL byte realtimeMode _INIT(REALTIME_MODE_INACTIVE);
